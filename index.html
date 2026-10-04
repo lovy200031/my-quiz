@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2b2d5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>나만의 플래시카드</title>
+<style>
+:root{
+  --ink:#24264f; --ink-2:#4a4c7a; --mute:#8b8aa3;
+  --bg:#f7f2ea; --paper:#fffdf9; --line:#ece4d6;
+  --ac:#5b50d6; --ac-d:#4338b8; --ac-l:#ecebfd;
+  --coral:#ff8a7a; --peach:#ffc2a8;
+  --star:#ffb627; --star-off:#d6d1c6;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+#app{height:100vh;height:100dvh;max-width:560px;margin:0 auto;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.view{display:none;flex:1;min-height:0;flex-direction:column}
+.view.on{display:flex}
+
+/* ---------- 상단 ---------- */
+.top{flex:none;padding:calc(var(--sat) + 14px) 18px 10px;display:flex;align-items:center;gap:10px}
+.top h1{margin:0;flex:1;font-size:23px;font-weight:900;letter-spacing:-.6px;display:flex;align-items:center;gap:9px}
+.top h1 .mk{width:30px;height:30px;border-radius:10px;background:var(--ink);position:relative;flex:none}
+.top h1 .mk:before,.top h1 .mk:after{content:"";position:absolute;border-radius:4px}
+.top h1 .mk:before{inset:7px 7px 13px;background:#fff}
+.top h1 .mk:after{left:7px;right:7px;bottom:7px;height:4px;background:var(--coral)}
+.top .sub{flex:1;min-width:0}
+.top .sub small{display:block;font-size:12px;color:var(--mute);font-weight:700}
+.top .sub b{display:block;font-size:21px;font-weight:900;letter-spacing:-.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rbtn{width:42px;height:42px;flex:none;border-radius:14px;background:var(--paper);border:1.5px solid var(--line);display:grid;place-items:center;font-size:19px}
+.rbtn:active{background:var(--ac-l)}
+
+/* ---------- 홈: 요약 & 과목 ---------- */
+.summary{flex:none;margin:4px 18px 8px;padding:16px 18px;border-radius:22px;background:var(--ink);color:#fff;display:flex;gap:10px;position:relative;overflow:hidden}
+.summary:after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,138,122,.25)}
+.summary div{flex:1;position:relative;z-index:1}
+.summary small{display:block;font-size:12px;opacity:.7;font-weight:600}
+.summary b{font-size:24px;font-weight:900}
+.summary .st b{color:var(--star)}
+.sec-t{flex:none;margin:12px 20px 2px;font-size:13px;font-weight:800;color:var(--mute);letter-spacing:.3px}
+.scroll{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:4px 18px 18px}
+.subj{display:flex;align-items:center;gap:14px;background:var(--paper);border:1.5px solid var(--line);border-radius:20px;padding:15px 14px 15px 15px;margin:10px 0;user-select:none;-webkit-user-select:none}
+.subj:active{transform:scale(.985)}
+.sbadge{width:48px;height:48px;flex:none;border-radius:15px;background:var(--c);color:#fff;display:grid;place-items:center;font-weight:900;font-size:19px}
+.sbody{flex:1;min-width:0}
+.sname{font-size:17px;font-weight:800;letter-spacing:-.3px}
+.smeta{font-size:12.5px;color:var(--mute);margin:3px 0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbar{height:6px;border-radius:3px;background:#efe9de;overflow:hidden}
+.sbar i{display:block;height:100%;background:var(--c);border-radius:3px}
+.sstar{flex:none;text-align:center;font-size:12px;color:var(--mute);font-weight:700;min-width:40px}
+.sstar b{display:block;font-size:17px;color:var(--star);font-weight:900}
+.empty{text-align:center;color:var(--mute);padding:50px 20px;line-height:1.75;font-size:14px}
+.empty .bigbtn{margin-top:16px}
+
+/* ---------- 과목 화면 ---------- */
+.chips{flex:none;display:flex;gap:7px;overflow-x:auto;padding:4px 18px 8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:36px;padding:0 14px;border-radius:18px;background:var(--paper);border:1.5px solid var(--line);font-size:13.5px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip i{font-style:normal;opacity:.6;margin-left:3px;font-size:12px}
+.seg2{flex:none;display:flex;margin:2px 18px 4px;background:#efe8dc;border-radius:14px;padding:4px}
+.seg2 button{flex:1;height:36px;border-radius:11px;font-size:13.5px;font-weight:800;color:var(--mute)}
+.seg2 button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(40,30,10,.1)}
+.item{display:flex;align-items:center;gap:10px;background:var(--paper);border-radius:16px;padding:12px 6px 12px 14px;margin:8px 0;border:1.5px solid var(--line);user-select:none;-webkit-user-select:none}
+.item.sel{border-color:#ffd88a;background:#fffaf0}
+.item:active{transform:scale(.99)}
+.item .body{flex:1;min-width:0}
+.tag{display:inline-block;font-size:11px;font-weight:800;color:var(--ac-d);background:var(--ac-l);border-radius:6px;padding:3px 7px;margin-bottom:5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .q{font-size:14.5px;line-height:1.45;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all;overflow-wrap:anywhere}
+.star{width:44px;height:44px;flex:none;display:grid;place-items:center;font-size:25px;line-height:1;color:var(--star-off)}
+.star.on{color:var(--star)}
+.star.pop{animation:pop .3s}
+@keyframes pop{40%{transform:scale(1.35)}100%{transform:scale(1)}}
+
+.bottombar{flex:none;padding:10px 18px calc(12px + var(--sab))}
+.bigbtn{width:100%;height:56px;border-radius:18px;background:var(--ac);color:#fff;font-size:16.5px;font-weight:800;box-shadow:0 8px 18px rgba(91,80,214,.28)}
+.bigbtn:active{background:var(--ac-d)}
+.bigbtn:disabled{background:#cfcbe0;box-shadow:none}
+
+/* ---------- 학습 ---------- */
+.shdr{flex:none;display:flex;align-items:center;gap:10px;padding:calc(var(--sat) + 10px) 14px 8px}
+.back{height:38px;padding:0 12px;border-radius:12px;background:var(--paper);font-weight:800;font-size:14px;border:1.5px solid var(--line);flex:none}
+.shdr .mid{flex:1;min-width:0}
+.shdr .mid small{display:block;font-size:11.5px;color:var(--mute);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+.prog{height:7px;background:#e9e1d3;border-radius:4px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--coral);border-radius:4px;transition:width .3s}
+.cnt{font-size:14px;font-weight:900;min-width:52px;text-align:right}
+.stage{flex:1;min-height:0;position:relative;padding:4px 14px 0;display:flex}
+.card{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--paper);border-radius:26px;overflow:hidden;border:1.5px solid var(--line);
+  box-shadow:0 12px 30px rgba(40,30,80,.08);will-change:transform;user-select:none;-webkit-user-select:none}
+.qpane{flex:1 1 50%;min-height:0;display:flex;flex-direction:column;padding:14px 16px 12px;touch-action:pan-y}
+.qtop{flex:none;display:flex;align-items:center;gap:6px}
+.qtop .tag{margin:0;font-size:12px;padding:4px 9px}
+.qtop .sp{flex:1}
+.spk{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:var(--ac-l);color:var(--ac-d);flex:none}
+.spk svg{width:21px;height:21px}
+.spk.on{background:var(--ac);color:#fff;animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(91,80,214,.18)}}
+.qtop .star{margin-right:-6px}
+.qtext{flex:1;min-height:0;overflow:auto;display:flex;align-items:safe center;justify-content:center;padding:8px 4px}
+.qtext div{white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere;font-weight:800;line-height:1.5;text-align:center;letter-spacing:-.3px}
+.qtext.long div{text-align:left;font-weight:600}
+.apane{flex:1 1 50%;min-height:0;position:relative;overflow:hidden;background:#fbf8f2;border-top:1.5px dashed var(--line)}
+.acontent{position:absolute;inset:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:18px 62px 22px 20px;touch-action:pan-y;user-select:text;-webkit-user-select:text}
+.aspk{position:absolute;right:14px;top:14px}
+.ans-main{font-size:19px;font-weight:900;color:var(--ac-d);margin-bottom:10px;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+.ans-sub{font-size:15px;line-height:1.7;color:#3b3d5e;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+.cover{position:absolute;inset:0;touch-action:none;cursor:grab;will-change:transform;border-radius:22px 22px 0 0;
+  background:
+    radial-gradient(circle at 1px 1px,rgba(255,255,255,.35) 1.2px,transparent 1.4px) 0 0/14px 14px,
+    linear-gradient(160deg,var(--peach) 0%,var(--coral) 100%);
+  box-shadow:0 -6px 18px rgba(200,80,60,.18);display:flex;flex-direction:column;align-items:center;padding-top:10px;color:#6b2a20}
+.cover:active{cursor:grabbing}
+.grip{width:56px;height:6px;border-radius:3px;background:rgba(107,42,32,.35)}
+.cover .hint{margin:auto 0;text-align:center;font-weight:800;font-size:16px;line-height:1.6;pointer-events:none}
+.cover .hint small{display:block;font-weight:600;font-size:12.5px;opacity:.75}
+.cover .arrow{display:block;font-size:24px;animation:bob 1.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(6px)}}
+.nav{flex:none;display:flex;align-items:center;gap:10px;padding:12px 14px calc(12px + var(--sab))}
+.navbtn{width:64px;height:52px;border-radius:16px;background:var(--paper);border:1.5px solid var(--line);font-size:22px;font-weight:900}
+.navbtn:active{background:var(--ac-l)}
+.navbtn:disabled{opacity:.35}
+.navmid{flex:1;text-align:center;font-size:12.5px;color:var(--mute);line-height:1.4}
+.pill{height:40px;padding:0 14px;border-radius:20px;background:var(--ac-l);color:var(--ac-d);font-weight:800;font-size:14px}
+.donebox{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:20px;background:var(--paper);border-radius:26px;border:1.5px solid var(--line)}
+.donebox .ok{width:76px;height:76px;border-radius:50%;background:var(--ac-l);display:grid;place-items:center;color:var(--ac);font-size:38px;font-weight:900}
+.donebox h2{margin:0;font-size:22px}
+.donebox p{margin:0;color:var(--mute);line-height:1.6}
+.donebox .bigbtn{max-width:300px}
+.ghost{height:48px;width:100%;max-width:300px;border-radius:16px;background:var(--paper);border:1.5px solid var(--line);font-weight:800}
+
+/* ---------- 토스트 ---------- */
+.toast{position:absolute;left:50%;bottom:calc(92px + var(--sab));transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--ink);color:#fff;
+  border-radius:14px;padding:11px 14px 11px 16px;font-size:14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:.25s;white-space:nowrap;z-index:60;max-width:92%}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{color:var(--peach);font-weight:800}
+
+/* ---------- 설정 시트 ---------- */
+.sheetback{position:absolute;inset:0;background:rgba(25,22,50,.45);display:none;z-index:40;align-items:flex-end}
+.sheetback.on{display:flex}
+.sheet{width:100%;max-height:92%;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--bg);border-radius:26px 26px 0 0;padding:8px 16px calc(20px + var(--sab));animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.5}}
+.sheet .grab{width:44px;height:5px;border-radius:3px;background:#d8cfbf;margin:4px auto 10px}
+.sheet h2{font-size:18px;margin:4px 2px 12px;display:flex;justify-content:space-between;align-items:center}
+.sheet h2 button{font-size:14px;color:var(--mute);font-weight:700;padding:6px}
+.sec{background:var(--paper);border-radius:18px;padding:14px;margin-bottom:12px;border:1.5px solid var(--line)}
+.sec h3{margin:0 0 4px;font-size:15px}
+.desc{font-size:12.5px;color:var(--mute);line-height:1.6;margin:0 0 10px}
+.desc code{background:var(--ac-l);color:var(--ac-d);border-radius:4px;padding:1px 5px;font-size:12px}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px dashed #cfc6f5;background:#f7f6ff;border-radius:16px;padding:18px;text-align:center;cursor:pointer;color:var(--ac-d);font-weight:800}
+.drop small{color:var(--mute);font-weight:600;font-size:12px}
+.drop input{display:none}
+textarea,input[type=url]{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;font-size:14px;background:#fffefb;color:var(--ink);outline:none}
+textarea{height:110px;resize:vertical;font-size:13px;line-height:1.45}
+textarea:focus,input:focus{border-color:var(--ac)}
+.row{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.btn{height:42px;padding:0 16px;border-radius:12px;background:var(--ac);color:#fff;font-weight:800;font-size:14px}
+.btn.sub{background:var(--ac-l);color:var(--ac-d)}
+.btn.warn{background:#fdeceb;color:#c2413b}
+.btn:disabled{opacity:.45}
+.grow{flex:1}
+.modes{display:flex;flex-direction:column;gap:6px;margin:10px 0 0}
+.modes label{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;font-weight:700;padding:8px 10px;border-radius:10px;background:#faf7f1}
+.modes label small{display:block;font-weight:500;color:var(--mute);font-size:12px}
+.modes input{margin-top:3px;accent-color:var(--ac)}
+.status{font-size:12.5px;margin-top:8px;color:var(--mute);line-height:1.5;min-height:1em}
+.status.ok{color:#2f7d4f}.status.err{color:#c2413b}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;font-size:14px;border-bottom:1px solid var(--line)}
+.opt:last-child{border-bottom:0}
+.opt small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+.opt select{font:inherit;font-size:13px;border:1.5px solid var(--line);border-radius:10px;padding:6px 8px;background:#fff;max-width:170px}
+.opt input[type=range]{width:130px;accent-color:var(--ac)}
+.sw{position:relative;width:48px;height:28px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;background:#d9d3c8;border-radius:14px;transition:.2s}
+.sw span:before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw input:checked+span{background:var(--ac)}
+.sw input:checked+span:before{transform:translateX(20px)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ================= 홈: 과목 목록 ================= -->
+<section class="view on" id="vHome">
+  <div class="top">
+    <h1><span class="mk"></span>나만의 플래시카드</h1>
+    <button class="rbtn" data-open-settings aria-label="설정">⚙️</button>
+  </div>
+  <div class="summary">
+    <div><small>전체 문항</small><b id="hTotal">0</b></div>
+    <div class="st"><small>★ 학습할 문항</small><b id="hStar">0</b></div>
+    <div><small>암기 완료율</small><b id="hRate">0%</b></div>
+  </div>
+  <div class="sec-t">과목</div>
+  <div class="scroll" id="subjList"></div>
+  <div class="bottombar"><button class="bigbtn" id="btnStartAll">★ 전체 과목 암기 시작 (0)</button></div>
+</section>
+
+<!-- ================= 과목: 영역 & 문제 ================= -->
+<section class="view" id="vSubj">
+  <div class="top">
+    <button class="rbtn" id="btnHome" aria-label="과목 목록">‹</button>
+    <div class="sub"><small>과목</small><b id="subjTitle">과목</b></div>
+    <button class="rbtn" data-open-settings aria-label="설정">⚙️</button>
+  </div>
+  <div class="chips" id="areaChips"></div>
+  <div class="seg2" id="fSeg">
+    <button data-f="all" class="on">전체 보기 (<span id="nAll">0</span>)</button>
+    <button data-f="star">★ 학습할 문항 (<span id="nStar">0</span>)</button>
+  </div>
+  <div class="scroll" id="list"></div>
+  <div class="bottombar"><button class="bigbtn" id="btnStart">★ 선택한 문항 암기 시작 (0)</button></div>
+</section>
+
+<!-- ================= 학습 ================= -->
+<section class="view" id="vStudy">
+  <div class="shdr">
+    <button class="back" id="btnBack">‹ 목록</button>
+    <div class="mid"><small id="sScope">과목</small><div class="prog"><i id="progBar"></i></div></div>
+    <div class="cnt" id="cnt">1 / 1</div>
+  </div>
+  <div class="stage">
+    <div class="card" id="card">
+      <div class="qpane">
+        <div class="qtop">
+          <span class="tag" id="sTag">영역</span><span class="sp"></span>
+          <button class="spk" id="spkQ" aria-label="문제 읽어주기"></button>
+          <button class="star" id="sStar" aria-label="별표">★</button>
+        </div>
+        <div class="qtext" id="sQwrap"><div id="sQ"></div></div>
+      </div>
+      <div class="apane" id="apane">
+        <div class="acontent" id="acontent"><div class="ans-main" id="sAmain"></div><div class="ans-sub" id="sAsub"></div></div>
+        <button class="spk aspk" id="spkA" aria-label="정답 읽어주기"></button>
+        <div class="cover" id="cover">
+          <div class="grip"></div>
+          <div class="hint"><span class="arrow">⌄</span>아래로 끌어내려 정답 확인<small>끝까지 내리면 암기 완료 · ★ 자동 해제</small></div>
+        </div>
+      </div>
+    </div>
+    <div class="donebox" id="donebox">
+      <div class="ok">✓</div><h2>이번 세트 완료!</h2><p id="doneMsg"></p>
+      <button class="bigbtn" id="btnAgain">남은 ★ 다시 학습</button>
+      <button class="ghost" id="btnDoneBack">목록으로</button>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="navbtn" id="btnPrev" aria-label="이전">‹</button>
+    <div class="navmid" id="navmid"></div>
+    <button class="navbtn" id="btnNext" aria-label="다음">›</button>
+  </div>
+</section>
+
+<div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAct"></button></div>
+
+<!-- ================= 설정 ================= -->
+<div class="sheetback" id="sheetback">
+<div class="sheet">
+  <div class="grab"></div>
+  <h2>문제 불러오기 · 설정 <button id="btnClose">닫기</button></h2>
+
+  <div class="sec">
+    <h3>① 엑셀 파일 업로드</h3>
+    <p class="desc">첫 행 머리글: <code>과목</code> <code>영역</code> <code>문제</code> <code>정답</code> <code>별표</code>
+      (해설·보기 등 다른 열은 정답 아래에 덧붙음). 과목 열이 없으면 <b>시트 이름</b>을 과목으로 씁니다. 시트가 여러 개면 모두 읽어요.</p>
+    <label class="drop"><input type="file" id="fileIn" accept=".xlsx,.csv,.tsv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
+      📂 엑셀(.xlsx) / CSV 파일 선택<small>휴대폰 파일·드라이브·카톡 받은 파일 모두 가능</small></label>
+    <div class="modes" id="modes">
+      <label><input type="radio" name="mode" value="subject" checked><span>과목별 교체 (권장)<small>파일에 있는 과목만 새 내용으로 바꾸고, 다른 과목은 그대로 둠</small></span></label>
+      <label><input type="radio" name="mode" value="append"><span>뒤에 추가<small>같은 문제는 정답만 갱신, 새 문제는 추가</small></span></label>
+      <label><input type="radio" name="mode" value="replace"><span>전체 덮어쓰기<small>기존 문항을 모두 지우고 새로 불러옴</small></span></label>
+    </div>
+    <div class="status" id="fileStatus"></div>
+    <div class="row"><button class="btn sub grow" id="btnTemplate">빈 양식(CSV) 내려받기</button></div>
+  </div>
+
+  <div class="sec">
+    <h3>② 표 복사 · 붙여넣기</h3>
+    <p class="desc">엑셀·노션·구글 시트에서 표를 복사해 붙여넣어도 됩니다. 위의 불러오기 방식이 똑같이 적용돼요.</p>
+    <textarea id="pasteBox" placeholder="과목	영역	문제	정답	별표&#10;심리검사	MMPI	F 척도가 측정하는 것은?	비전형 반응	O"></textarea>
+    <div class="status" id="pasteStatus"></div>
+    <div class="row"><button class="btn grow" id="btnPaste">붙여넣은 표 가져오기</button></div>
+  </div>
+
+  <div class="sec">
+    <h3>③ 구글 스프레드시트 연동</h3>
+    <p class="desc">구글 시트 › 파일 › 공유 › <b>웹에 게시</b> › CSV 링크를 넣으세요. (‘링크가 있는 모든 사용자’로 공개한 일반 주소도 자동 변환)</p>
+    <input type="url" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" autocomplete="off">
+    <div class="row"><button class="btn grow" id="btnSync">시트에서 불러오기</button></div>
+    <div class="status" id="syncStatus"></div>
+  </div>
+
+  <div class="sec">
+    <h3>🔊 읽어주기 (TTS)</h3>
+    <div class="opt"><div>읽기 속도<small id="rateLbl">1.0배</small></div><input type="range" id="optRate" min="0.6" max="1.6" step="0.1"></div>
+    <div class="opt"><div>목소리<small>기기에 설치된 한국어 음성</small></div><select id="optVoice"><option value="">기본</option></select></div>
+    <div class="opt"><div>카드 넘기면 문제 자동 읽기</div><label class="sw"><input type="checkbox" id="optAutoQ"><span></span></label></div>
+    <div class="opt"><div>정답 공개 시 자동 읽기</div><label class="sw"><input type="checkbox" id="optAutoA"><span></span></label></div>
+  </div>
+
+  <div class="sec">
+    <h3>학습 옵션</h3>
+    <div class="opt"><div>카드 순서 섞기</div><label class="sw"><input type="checkbox" id="optShuffle"><span></span></label></div>
+    <div class="opt"><div>내 ★ 상태 유지<small>다시 불러와도 같은 문제의 별표는 기기 상태 유지</small></div><label class="sw"><input type="checkbox" id="optKeep"><span></span></label></div>
+    <div class="opt"><div>앱 열 때 시트 자동 동기화</div><label class="sw"><input type="checkbox" id="optAuto"><span></span></label></div>
+  </div>
+
+  <div class="sec">
+    <h3>데이터 관리</h3>
+    <p class="desc" id="dataInfo"></p>
+    <div class="row">
+      <button class="btn sub" id="btnStarAll">전체 ★ 선택</button>
+      <button class="btn sub" id="btnStarNone">전체 ★ 해제</button>
+      <button class="btn sub" id="btnExport">CSV 내보내기</button>
+    </div>
+    <div class="row">
+      <button class="btn sub" id="btnSample">샘플로 초기화</button>
+      <button class="btn warn" id="btnClear">전체 삭제</button>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const LS_KEY = 'myFlashcard.v1';
+const ICON_SPK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+const ICON_STOP = '<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg>';
+const PALETTE = ['#5b50d6','#ff7a66','#1f9d8b','#e0a400','#3a86d6','#c050a8','#6c8a2b','#d4683a'];
+
+/* ================= 샘플 ================= */
+const SAMPLE = [
+ ['심리검사','MMPI','MMPI-2 타당도 척도 중 F(비전형) 척도가 높을 때 의미하는 것은?','일반 집단과 다른 비전형적 반응\n심한 정신병리, 무작위 응답, 증상 과장(부정 왜곡) 가능성\n매우 높으면 프로파일 타당성 먼저 검토'],
+ ['심리검사','MMPI','다음 중 MMPI-2 타당도 척도가 아닌 것은?\n① L  ② K  ③ F(B)  ④ Si','④ Si\nSi(사회적 내향성)는 임상척도 0번이다.'],
+ ['심리검사','MMPI','MMPI-2 임상척도 4번(Pd)의 명칭과 주요 특징은?','반사회성(Psychopathic Deviate)\n권위에 대한 반항, 충동성, 가족·사회와의 갈등, 규칙 위반 경향'],
+ ['심리검사','SCT','Sacks 문장완성검사(SSCT)가 다루는 4개 영역은?','가족, 성(性), 대인관계, 자기개념\n각 영역의 하위 태도를 통해 갈등과 정서를 파악'],
+ ['심리검사','SCT','문장완성검사(SCT)의 검사 유형상 분류는?','반구조화된 투사검사\n자유연상 원리 + 의식적 수준의 반응이 함께 나타남'],
+ ['심리검사','K-WISC-V','K-WISC-V의 5가지 기본지표는?','언어이해, 시공간, 유동추론, 작업기억, 처리속도'],
+ ['심리검사','HTP','HTP 검사에서 그림을 그리는 순서는?','집 → 나무 → 사람\n각 그림마다 새 용지를 사용하고, 그린 뒤 사후 질문(PDI)을 실시'],
+ ['상담이론','정신분석','프로이트의 심리성적 발달단계를 순서대로 쓰시오.','구강기 → 항문기 → 남근기 → 잠복기 → 생식기'],
+ ['상담이론','정신분석','방어기제 중 ‘반동형성’이란?','받아들일 수 없는 충동을 정반대의 태도·행동으로 표현하는 것\n예) 미워하는 대상에게 과도하게 친절하게 대함'],
+ ['상담이론','인간중심','로저스가 제시한 상담자의 3가지 핵심 조건은?','① 일치성(진실성)\n② 무조건적 긍정적 존중\n③ 공감적 이해'],
+ ['상담이론','인지행동','Beck의 인지적 오류 중 ‘임의적 추론’이란?','충분한 근거 없이, 또는 반대 증거가 있는데도 결론을 내리는 것\n예) 친구가 답장을 안 하니 나를 싫어하는 게 분명해'],
+ ['상담이론','REBT','Ellis의 ABCDE 모형 각 요소는?','A 선행사건 – B 신념(비합리적 신념) – C 결과(정서·행동)\nD 논박 – E 효과(새로운 합리적 신념·감정)'],
+ ['상담이론','게슈탈트','게슈탈트 접촉경계 혼란 중 ‘내사’와 ‘투사’의 차이는?','내사: 타인의 가치·신념을 비판 없이 그대로 받아들임\n투사: 자신의 생각·감정을 타인의 것으로 지각함'],
+ ['청소년이해론','발달이론','에릭슨이 제시한 청소년기의 심리사회적 위기는?','정체감 대 역할혼미(정체감 혼란)\n성공적 해결 시 덕목: 충실성(fidelity)'],
+ ['청소년이해론','발달이론','엘킨드가 말한 청소년기 자아중심성의 두 가지 특징은?','① 상상적 청중: 모두가 나를 주목한다고 느낌\n② 개인적 우화: 나는 특별하고 위험도 피해 간다고 믿음'],
+ ['청소년이해론','정체감','마샤(Marcia)의 정체감 지위 4가지는?','정체감 성취, 유예, 유실(폐쇄), 혼미\n기준: 위기(탐색) 경험 여부 × 전념(수행) 여부'],
+];
+
+/* ================= 상태 ================= */
+let S = { items: [], filter:'all', opts:{ shuffle:false, keep:true, auto:false, rate:1, voice:'', autoQ:false, autoA:false }, url:'' };
+let uid = Date.now();
+const mk = (subj,area,q,a,star=true) => ({ id:'c'+(uid++).toString(36), subj:subj||'미분류', area:area||'', q:q||'', a:a||'', star:!!star });
+function load(){
+  try { const d = JSON.parse(localStorage.getItem(LS_KEY)||'null');
+    if (d && Array.isArray(d.items)){ const o = S.opts; S = Object.assign(S, d); S.opts = Object.assign(o, d.opts||{}); return; } } catch(e){}
+  S.items = SAMPLE.map(r => mk(...r, true));
+}
+function save(){ try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(e){} }
+const byId = id => S.items.find(x => x.id === id);
+const keyOf = x => (x.subj + '|' + x.area + '|' + x.q).replace(/\s+/g,' ').trim().toLowerCase();
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const subjects = () => { const m = new Map(); S.items.forEach(x => { if(!m.has(x.subj)) m.set(x.subj, []); m.get(x.subj).push(x); }); return m; };
+const colorOf = name => { const names = [...subjects().keys()]; const i = names.indexOf(name); return PALETTE[(i < 0 ? 0 : i) % PALETTE.length]; };
+
+/* ================= 화면 전환 ================= */
+let curSubj = null, curArea = '', returnTo = 'home';
+function show(v){
+  ['vHome','vSubj','vStudy'].forEach(id => $('#'+id).classList.toggle('on', id === v));
+  if (v !== 'vStudy') stopSpeak();
+  if (v === 'vHome') renderHome();
+  if (v === 'vSubj') renderSubj();
+}
+
+/* ================= 홈 ================= */
+function renderHome(){
+  const m = subjects(), total = S.items.length, star = S.items.filter(x => x.star).length;
+  $('#hTotal').textContent = total; $('#hStar').textContent = star;
+  $('#hRate').textContent = total ? Math.round((total - star) / total * 100) + '%' : '0%';
+  const b = $('#btnStartAll'); b.textContent = `★ 전체 과목 암기 시작 (${star})`; b.disabled = !star;
+  if (!m.size){
+    $('#subjList').innerHTML = `<div class="empty">아직 문제가 없어요.<br>엑셀 파일을 올리면 첫 열의 <b>과목</b>별로<br>자동 정리됩니다.<button class="bigbtn" data-open-settings>📂 문제 불러오기</button></div>`;
+    return;
+  }
+  $('#subjList').innerHTML = [...m.entries()].map(([name, arr], i) => {
+    const areas = [...new Set(arr.map(x => x.area).filter(Boolean))];
+    const st = arr.filter(x => x.star).length;
+    const pct = Math.round((arr.length - st) / arr.length * 100);
+    return `<div class="subj" data-s="${esc(name)}" style="--c:${PALETTE[i % PALETTE.length]}">
+      <div class="sbadge">${esc([...name][0] || '?')}</div>
+      <div class="sbody"><div class="sname">${esc(name)}</div>
+        <div class="smeta">${areas.length ? esc(areas.slice(0,4).join(' · ')) + (areas.length > 4 ? ` 외 ${areas.length-4}` : '') + ' · ' : ''}${arr.length}문항 · 완료 ${pct}%</div>
+        <div class="sbar"><i style="width:${pct}%"></i></div></div>
+      <div class="sstar"><b>★${st}</b>학습</div></div>`;
+  }).join('');
+}
+$('#subjList').addEventListener('click', e => {
+  const el = e.target.closest('.subj'); if (!el) return;
+  curSubj = el.dataset.s; curArea = ''; show('vSubj'); $('#list').scrollTop = 0;
+});
+$('#btnStartAll').addEventListener('click', () => startStudy(null, '', 'home'));
+
+/* ================= 과목 화면 ================= */
+const listEl = $('#list');
+const scoped = () => S.items.filter(x => x.subj === curSubj && (!curArea || x.area === curArea));
+function renderSubj(){
+  const all = S.items.filter(x => x.subj === curSubj);
+  if (!all.length){ show('vHome'); return; }
+  $('#subjTitle').textContent = curSubj;
+  const areas = [...new Set(all.map(x => x.area).filter(Boolean))];
+  if (curArea && !areas.includes(curArea)) curArea = '';
+  $('#areaChips').style.display = areas.length ? 'flex' : 'none';
+  $('#areaChips').innerHTML = `<button class="chip${curArea?'':' on'}" data-a="">전체<i>${all.length}</i></button>` +
+    areas.map(a => `<button class="chip${a===curArea?' on':''}" data-a="${esc(a)}">${esc(a)}<i>${all.filter(x => x.area===a).length}</i></button>`).join('');
+  document.querySelectorAll('#fSeg button').forEach(b => b.classList.toggle('on', b.dataset.f === S.filter));
+  renderList();
+}
+function renderList(){
+  const sc = scoped();
+  const arr = S.filter === 'star' ? sc.filter(x => x.star) : sc;
+  listEl.innerHTML = arr.length ? arr.map(x => `
+    <div class="item${x.star?' sel':''}" data-id="${x.id}">
+      <div class="body">${x.area?`<span class="tag">${esc(x.area)}</span>`:''}<div class="q">${esc(x.q)}</div></div>
+      <button class="star${x.star?' on':''}" aria-label="별표">★</button></div>`).join('')
+    : `<div class="empty">${S.filter==='star' ? '★ 선택된 문항이 없어요.<br>전체 보기에서 별표를 눌러 고르세요.' : '문항이 없습니다.'}</div>`;
+  updateCounts();
+}
+function updateCounts(){
+  const sc = scoped(), n = sc.filter(x => x.star).length;
+  $('#nAll').textContent = sc.length; $('#nStar').textContent = n;
+  const b = $('#btnStart'); b.textContent = `★ ${curArea ? curArea + ' ' : ''}선택 문항 암기 시작 (${n})`; b.disabled = !n;
+}
+function setStar(id, val){
+  const it = byId(id); if (!it) return;
+  it.star = val === undefined ? !it.star : !!val; save();
+  if ($('#vSubj').classList.contains('on')){
+    const row = listEl.querySelector(`.item[data-id="${id}"]`);
+    if (S.filter === 'star' && !it.star) renderList();
+    else if (row){ row.classList.toggle('sel', it.star); const s = row.querySelector('.star'); s.classList.toggle('on', it.star); s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop'); updateCounts(); }
+  }
+  if (cur() && cur().id === id) paintStudyStar(true);
+}
+listEl.addEventListener('click', e => { const r = e.target.closest('.item'); if (r) setStar(r.dataset.id); });
+$('#areaChips').addEventListener('click', e => { const c = e.target.closest('.chip'); if (!c) return; curArea = c.dataset.a; renderSubj(); listEl.scrollTop = 0; c.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'}); });
+document.querySelectorAll('#fSeg button').forEach(b => b.addEventListener('click', () => { S.filter = b.dataset.f; save(); renderSubj(); listEl.scrollTop = 0; }));
+$('#btnHome').addEventListener('click', () => show('vHome'));
+$('#btnStart').addEventListener('click', () => startStudy(curSubj, curArea, 'subj'));
+
+/* ================= TTS ================= */
+const synth = window.speechSynthesis;
+let speakingBtn = null, voices = [];
+function loadVoices(){
+  if (!synth) return;
+  voices = synth.getVoices().filter(v => /^ko/i.test(v.lang));
+  const sel = $('#optVoice');
+  sel.innerHTML = '<option value="">기본 (한국어)</option>' + voices.map(v => `<option value="${esc(v.name)}">${esc(v.name.replace(/Microsoft |Google |\(.*?\)/g,'').trim() || v.name)}</option>`).join('');
+  sel.value = S.opts.voice || '';
+}
+if (synth){ loadVoices(); synth.onvoiceschanged = loadVoices; }
+function cleanForSpeech(t){
+  const circ = {'①':'1번,','②':'2번,','③':'3번,','④':'4번,','⑤':'5번,'};
+  return t.replace(/_{2,}|＿{2,}/g, ' 빈칸 ').replace(/[①-⑤]/g, m => ' ' + circ[m] + ' ')
+          .replace(/[→⟶]/g, ', ').replace(/[\[\]【】※★]/g, ' ').replace(/·/g, ', ').replace(/\n+/g, '. ').replace(/\s{2,}/g, ' ').trim();
+}
+function setSpk(btn, on){ if (!btn) return; btn.classList.toggle('on', on); btn.innerHTML = on ? ICON_STOP : ICON_SPK; }
+function stopSpeak(){ if (synth) synth.cancel(); setSpk(speakingBtn, false); speakingBtn = null; }
+function speak(text, btn){
+  if (!synth || !window.SpeechSynthesisUtterance){ toast('이 브라우저는 읽어주기를 지원하지 않아요'); return; }
+  if (speakingBtn === btn){ stopSpeak(); return; }
+  stopSpeak();
+  const u = new SpeechSynthesisUtterance(cleanForSpeech(text));
+  u.lang = 'ko-KR'; u.rate = +S.opts.rate || 1;
+  const v = voices.find(v => v.name === S.opts.voice) || voices[0]; if (v) u.voice = v;
+  u.onend = u.onerror = () => { if (speakingBtn === btn){ setSpk(btn, false); speakingBtn = null; } };
+  speakingBtn = btn; setSpk(btn, true);
+  synth.speak(u);
+}
+setSpk($('#spkQ'), false); setSpk($('#spkA'), false);
+$('#spkQ').addEventListener('click', e => { e.stopPropagation(); const it = cur(); if (it) speak(it.q, $('#spkQ')); });
+$('#spkA').addEventListener('click', e => { e.stopPropagation(); const it = cur(); if (it) speak(it.a, $('#spkA')); });
+
+/* ================= 학습 ================= */
+let deck = [], idx = 0, coverY = 0, coverDone = false, busy = false, coverAnim = null, scopeSubj = null, scopeArea = '';
+const card = $('#card'), cover = $('#cover'), apane = $('#apane');
+const cur = () => deck[idx] ? byId(deck[idx]) : null;
+function startStudy(subj, area, from){
+  scopeSubj = subj; scopeArea = area; returnTo = from;
+  deck = S.items.filter(x => x.star && (!subj || x.subj === subj) && (!area || x.area === area)).map(x => x.id);
+  if (!deck.length) return;
+  if (S.opts.shuffle) for (let i = deck.length-1; i > 0; i--){ const j = Math.random()*(i+1)|0; [deck[i],deck[j]] = [deck[j],deck[i]]; }
+  idx = 0;
+  $('#sScope').textContent = subj ? subj + (area ? ' › ' + area : '') : '전체 과목';
+  show('vStudy'); renderCard();
+}
+const backFromStudy = () => show(returnTo === 'subj' ? 'vSubj' : 'vHome');
+function fitSize(q){
+  const L = q.length, lines = q.split('\n').length;
+  if (L <= 12 && lines === 1) return 32;
+  if (L <= 28 && lines === 1) return 25;
+  if (L <= 60 && lines <= 2) return 21;
+  if (L <= 140) return 17.5;
+  return 15.5;
+}
+function renderCard(){
+  stopSpeak();
+  while (idx < deck.length && !byId(deck[idx])) deck.splice(idx, 1);
+  const done = idx >= deck.length;
+  card.style.display = done ? 'none' : 'flex';
+  $('#donebox').style.display = done ? 'flex' : 'none';
+  $('#progBar').style.width = (deck.length ? Math.min(idx, deck.length) / deck.length * 100 : 0) + '%';
+  $('#btnPrev').disabled = idx === 0; $('#btnNext').disabled = done;
+  if (done){
+    const left = S.items.filter(x => x.star && (!scopeSubj || x.subj === scopeSubj) && (!scopeArea || x.area === scopeArea)).length;
+    $('#cnt').textContent = '완료';
+    $('#doneMsg').innerHTML = `${deck.length}장을 모두 넘겼어요.<br>아직 ★ 남은 문항: <b>${left}개</b>`;
+    $('#btnAgain').style.display = left ? 'block' : 'none';
+    $('#navmid').textContent = ''; return;
+  }
+  const it = cur();
+  $('#cnt').textContent = `${idx+1} / ${deck.length}`;
+  const tag = scopeSubj ? (it.area || it.subj) : it.subj + (it.area ? ' · ' + it.area : '');
+  $('#sTag').textContent = tag;
+  const qw = $('#sQwrap'), q = $('#sQ');
+  q.textContent = it.q; q.style.fontSize = fitSize(it.q) + 'px';
+  qw.classList.toggle('long', it.q.length > 60 || it.q.split('\n').length > 2); qw.scrollTop = 0;
+  const lines = it.a.split('\n');
+  $('#sAmain').textContent = lines[0] || ''; $('#sAsub').textContent = lines.slice(1).join('\n');
+  $('#acontent').scrollTop = 0;
+  paintStudyStar(false);
+  cancelCover(); coverDone = false; setCover(0); cover.style.visibility = 'visible'; setNavMid();
+  if (S.opts.autoQ) setTimeout(() => { if (cur() === it && !speakingBtn) speak(it.q, $('#spkQ')); }, 280);
+}
+function paintStudyStar(pop){ const it = cur(); if (!it) return; const s = $('#sStar'); s.classList.toggle('on', it.star); if (pop){ s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop'); } }
+function setNavMid(){
+  const m = $('#navmid');
+  if (coverDone){ m.innerHTML = '<button class="pill" id="btnRecover">↺ 다시 가리기</button>'; $('#btnRecover').onclick = recover; }
+  else m.innerHTML = '좌우로 넘기기 ·<br>커버를 아래로 내리기';
+}
+$('#sStar').addEventListener('click', e => { e.stopPropagation(); const it = cur(); if (it) setStar(it.id); });
+$('#btnBack').addEventListener('click', backFromStudy);
+$('#btnDoneBack').addEventListener('click', backFromStudy);
+$('#btnAgain').addEventListener('click', () => startStudy(scopeSubj, scopeArea, returnTo));
+$('#btnPrev').addEventListener('click', () => go(-1));
+$('#btnNext').addEventListener('click', () => go(1));
+
+/* ----- 커버 스프링 ----- */
+function setCover(y){ coverY = y; cover.style.transform = `translate3d(0,${y}px,0)`; }
+function cancelCover(){ if (coverAnim){ cancelAnimationFrame(coverAnim); coverAnim = null; } }
+function spring(from, to, v0, onEnd, k = 720, zeta = 0.36){
+  cancelCover();
+  let x = from, v = v0, last = performance.now(); const c = 2 * Math.sqrt(k) * zeta;
+  const step = now => {
+    const dt = Math.min(0.034, (now - last) / 1000); last = now;
+    for (let i = 0; i < 4; i++){ const h = dt/4; const a = -k*(x-to) - c*v; v += a*h; x += v*h; }
+    setCover(x);
+    if (Math.abs(x-to) < 0.5 && Math.abs(v) < 10){ setCover(to); coverAnim = null; onEnd && onEnd(); return; }
+    coverAnim = requestAnimationFrame(step);
+  };
+  coverAnim = requestAnimationFrame(step);
+}
+let lastUnstar = null;
+function completeCover(v){
+  const H = apane.clientHeight; coverDone = true; setNavMid();
+  spring(coverY, H + 4, Math.max(v, 400), () => { cover.style.visibility = 'hidden'; }, 620, 0.42);
+  try { navigator.vibrate && navigator.vibrate(40); } catch(e){}
+  const it = cur();
+  if (it && it.star){ lastUnstar = it.id; setStar(it.id, false); toast('암기 완료 · ★ 해제됨', '되돌리기', () => lastUnstar && setStar(lastUnstar, true)); }
+  if (it && S.opts.autoA) setTimeout(() => speak(it.a, $('#spkA')), 250);
+}
+function recover(){ cover.style.visibility = 'visible'; coverDone = false; setNavMid(); spring(coverY, 0, -300); if (speakingBtn === $('#spkA')) stopSpeak(); }
+
+/* ----- 제스처 ----- */
+let g = null;
+const vel = (G, k) => { const s = G.samples; if (s.length < 2) return 0; const a = s[0], b = s[s.length-1], dt = (b.t-a.t)/1000; return dt > 0 ? (b[k]-a[k])/dt : 0; };
+card.addEventListener('pointerdown', e => {
+  if (busy || (e.pointerType === 'mouse' && e.button !== 0) || e.target.closest('button')) return;
+  const onCover = !!e.target.closest('.cover') && !coverDone;
+  g = { id:e.pointerId, sx:e.clientX, sy:e.clientY, axis:null, onCover, startCover:coverY, samples:[{t:performance.now(),x:e.clientX,y:e.clientY}] };
+  if (onCover){ cancelCover(); g.startCover = coverY; try{ card.setPointerCapture(e.pointerId); }catch(_){} }
+});
+card.addEventListener('pointermove', e => {
+  if (!g || e.pointerId !== g.id) return;
+  const dx = e.clientX - g.sx, dy = e.clientY - g.sy, now = performance.now();
+  g.samples.push({t:now,x:e.clientX,y:e.clientY});
+  while (g.samples.length > 2 && now - g.samples[0].t > 90) g.samples.shift();
+  if (!g.axis){
+    if (Math.hypot(dx, dy) < 7) return;
+    g.axis = Math.abs(dx) > Math.abs(dy) * 1.15 ? 'x' : 'y';
+    if (g.axis === 'y' && !g.onCover){ g = null; return; }
+    try{ card.setPointerCapture(e.pointerId); }catch(_){}
+    if (g.axis === 'x'){ card.style.transition = 'none'; if (g.onCover) spring(coverY, 0, 0); }
+  }
+  if (g.axis === 'y'){
+    const H = apane.clientHeight; let y = g.startCover + dy;
+    if (y < 0) y = -Math.pow(-y, 0.65); else if (y > H) y = H + (y-H)*0.25;
+    setCover(y);
+  } else {
+    let tx = dx; if (dx > 0 && idx === 0) tx = dx * 0.25;
+    card.style.transform = `translate3d(${tx}px,0,0) rotate(${tx/45}deg)`;
+  }
+  e.preventDefault();
+}, { passive:false });
+function endGesture(e, cancelled){
+  if (!g || e.pointerId !== g.id) return;
+  const G = g; g = null;
+  if (!G.axis){ if (G.onCover && !cancelled) spring(coverY, 0, 1100); return; }
+  if (G.axis === 'y'){
+    const vy = vel(G,'y'), H = apane.clientHeight;
+    if (!cancelled && (coverY > H*0.35 || vy > 900)) completeCover(vy); else spring(coverY, 0, Math.min(vy, 2500));
+  } else {
+    const dx = e.clientX - G.sx, vx = vel(G,'x');
+    if (!cancelled && (dx < -70 || vx < -650)) go(1);
+    else if (!cancelled && (dx > 70 || vx > 650) && idx > 0) go(-1);
+    else snapBack();
+  }
+}
+card.addEventListener('pointerup', e => endGesture(e, false));
+card.addEventListener('pointercancel', e => endGesture(e, true));
+function snapBack(){ card.style.transition = 'transform .35s cubic-bezier(.2,1.4,.4,1)'; card.style.transform = 'translate3d(0,0,0)'; }
+function go(dir){
+  if (busy) return;
+  if (dir < 0 && idx === 0){ snapBack(); return; }
+  if (dir > 0 && idx >= deck.length) return;
+  if (dir < 0 && idx >= deck.length){ idx = deck.length - 1; renderCard(); return; }
+  busy = true; const W = card.offsetWidth + 60;
+  card.style.transition = 'transform .17s ease-in'; card.style.transform = `translate3d(${-dir*W}px,0,0) rotate(${-dir*6}deg)`;
+  setTimeout(() => {
+    idx += dir; renderCard();
+    card.style.transition = 'none'; card.style.transform = `translate3d(${dir*W}px,0,0)`; void card.offsetWidth;
+    card.style.transition = 'transform .32s cubic-bezier(.2,1.25,.4,1)'; card.style.transform = 'translate3d(0,0,0)';
+    setTimeout(() => { busy = false; }, 120);
+  }, 170);
+}
+document.addEventListener('keydown', e => {
+  if (!$('#vStudy').classList.contains('on') || $('#sheetback').classList.contains('on')) return;
+  if (e.key === 'ArrowRight') go(1); else if (e.key === 'ArrowLeft') go(-1);
+  else if ((e.key === 'ArrowDown' || e.key === ' ') && !coverDone && cur()){ e.preventDefault(); completeCover(1200); }
+  else if (e.key === 'ArrowUp' && coverDone) recover();
+  else if (e.key === 's' && cur()) speak(cur().q, $('#spkQ'));
+  else if (e.key === 'Escape') backFromStudy();
+});
+window.addEventListener('resize', () => { if (coverDone) setCover(apane.clientHeight + 4); });
+
+/* ================= 토스트 ================= */
+let toastT;
+function toast(msg, label, act){
+  const t = $('#toast'); $('#toastMsg').textContent = msg;
+  const b = $('#toastAct'); b.textContent = label || ''; b.style.display = label ? '' : 'none';
+  b.onclick = () => { act && act(); t.classList.remove('on'); };
+  t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600);
+}
+
+/* ================= 파싱 ================= */
+function parseDelimited(text, d){
+  const rows = []; let row = [], f = '', q = false, i = 0;
+  text = text.replace(/^﻿/, '');
+  while (i < text.length){
+    const c = text[i];
+    if (q){ if (c === '"'){ if (text[i+1] === '"'){ f += '"'; i += 2; continue; } q = false; i++; continue; } f += c; i++; continue; }
+    if (c === '"' && f === ''){ q = true; i++; continue; }
+    if (c === d){ row.push(f); f = ''; i++; continue; }
+    if (c === '\r'){ i++; continue; }
+    if (c === '\n'){ row.push(f); rows.push(row); row = []; f = ''; i++; continue; }
+    f += c; i++;
+  }
+  if (f !== '' || row.length){ row.push(f); rows.push(row); }
+  return rows;
+}
+function detectDelim(t){ const s = t.split('\n').slice(0,5).join('\n'); if (s.includes('\t')) return '\t'; return (s.match(/;/g)||[]).length > (s.match(/,/g)||[]).length ? ';' : ','; }
+const norm = s => String(s ?? '').replace(/[\s﻿"'()]/g,'').toLowerCase();
+const ALIAS = {
+  subj: ['과목','과목명','시험과목','교과','교과목','subject','course'],
+  area: ['영역','구분','분류','단원','주제','유형','세부영역','카테고리','태그','챕터','area','tag','category','section','chapter','topic'],
+  q:    ['문제','문항','질문','단어','개념','용어','question','word','front','앞면','term'],
+  a:    ['정답','답','뜻','의미','정답해설','정답/해설','answer','meaning','back','뒷면','definition'],
+  star: ['별표','★','학습','선택','암기','체크','학습여부','star','starred','check','checked']
+};
+const TRUE_SET = new Set(['true','o','○','y','yes','1','v','✓','✔','★','☑','checked','예','on']);
+const FALSE_SET = new Set(['false','x','×','n','no','0','☐','unchecked','아니오','off','-']);
+const boolish = v => { const s = norm(v); return TRUE_SET.has(s) || FALSE_SET.has(s) || s === ''; };
+const parseStar = v => TRUE_SET.has(norm(v));
+
+function rowsToItems(rows, fallbackSubj){
+  rows = rows.map(r => r.map(c => String(c ?? ''))).filter(r => r.some(c => c.trim() !== ''));
+  if (!rows.length) return { items: [], info: '' };
+  const head = rows[0].map(norm), map = {}, used = new Set();
+  head.forEach((h, i) => { for (const k in ALIAS) if (map[k] === undefined && ALIAS[k].includes(h)){ map[k] = i; used.add(i); break; } });
+  let body = rows, extras = [], info;
+  if (map.q !== undefined || map.a !== undefined){
+    body = rows.slice(1);
+    if (map.q === undefined){ map.q = rows[0].findIndex((_, i) => !used.has(i)); used.add(map.q); }
+    extras = rows[0].map((h, i) => ({ h: h.trim(), i })).filter(o => !used.has(o.i) && o.h);
+    info = '머리글 인식: ' + [['subj','과목'],['area','영역'],['q','문제'],['a','정답'],['star','별표']].filter(p => map[p[0]] !== undefined).map(p => p[1]).join('·') + (extras.length ? ` (+${extras.map(o => o.h).join(', ')})` : '');
+  } else {
+    const n = Math.max(...rows.map(r => r.length));
+    const lastBool = c => rows.every(r => boolish(r[c]));
+    if (n <= 1) return { items: [], info: '열이 하나뿐이라 건너뜀' };
+    else if (n === 2){ map.q = 0; map.a = 1; }
+    else if (n === 3){ if (lastBool(2)){ map.q = 0; map.a = 1; map.star = 2; } else { map.area = 0; map.q = 1; map.a = 2; } }
+    else if (n === 4){ if (lastBool(3)){ map.area = 0; map.q = 1; map.a = 2; map.star = 3; } else { map.subj = 0; map.area = 1; map.q = 2; map.a = 3; } }
+    else { map.subj = 0; map.area = 1; map.q = 2; map.a = 3; map.star = 4; }
+    info = '머리글 없음 → 열 순서(과목·영역·문제·정답·별표)로 인식';
+  }
+  const get = (r, k) => map[k] !== undefined && map[k] >= 0 ? (r[map[k]] || '').trim() : '';
+  let lastSubj = '', lastArea = '';
+  const items = body.map(r => {
+    // 병합 셀처럼 비어 있으면 위 행의 과목/영역을 이어받음
+    let subj = get(r,'subj') || (map.subj !== undefined ? lastSubj : '') || fallbackSubj || '미분류';
+    let area = get(r,'area') || (map.area !== undefined ? lastArea : '');
+    lastSubj = subj; lastArea = area;
+    let a = get(r,'a');
+    extras.forEach(o => { const v = (r[o.i]||'').trim(); if (v) a += (a ? '\n' : '') + `[${o.h}] ${v}`; });
+    return mk(subj, area, get(r,'q'), a, map.star !== undefined ? parseStar(r[map.star]) : true);
+  }).filter(x => x.q || x.a);
+  return { items, info };
+}
+const parseText = (t, fb) => { t = t.trim(); return t ? rowsToItems(parseDelimited(t, detectDelim(t)), fb) : { items:[], info:'' }; };
+
+/* ----- 경량 XLSX 리더 (외부 라이브러리 없음) ----- */
+async function readZip(buf){
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  let eocd = -1;
+  for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 66000); i--) if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  if (eocd < 0) throw new Error('엑셀(.xlsx) 파일 형식이 아닙니다');
+  const count = dv.getUint16(eocd + 10, true); let p = dv.getUint32(eocd + 16, true);
+  const files = {}, dec = new TextDecoder();
+  for (let n = 0; n < count; n++){
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), lo = dv.getUint32(p + 42, true);
+    const name = dec.decode(u8.subarray(p + 46, p + 46 + nl));
+    files[name] = { method, csize, lo };
+    p += 46 + nl + el + cl;
+  }
+  return async name => {
+    const f = files[name]; if (!f) return null;
+    const start = f.lo + 30 + dv.getUint16(f.lo + 26, true) + dv.getUint16(f.lo + 28, true);
+    const data = u8.subarray(start, start + f.csize);
+    if (f.method === 0) return dec.decode(data);
+    if (typeof DecompressionStream === 'undefined') throw new Error('이 브라우저는 엑셀 직접 읽기를 지원하지 않아요. CSV로 저장해 올리거나 표를 복사해 붙여넣어 주세요');
+    const ds = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return await new Response(ds).text();
+  };
+}
+const tags = (node, name) => [...node.getElementsByTagNameNS('*', name)];
+async function readXlsx(buf){
+  const get = await readZip(buf), P = s => new DOMParser().parseFromString(s, 'application/xml');
+  const ssXml = await get('xl/sharedStrings.xml');
+  const shared = ssXml ? tags(P(ssXml), 'si').map(si => tags(si, 't').filter(t => t.parentNode.localName !== 'rPh').map(t => t.textContent).join('')) : [];
+  const wb = P(await get('xl/workbook.xml'));
+  const rels = P(await get('xl/_rels/workbook.xml.rels') || '<x/>');
+  const relMap = {}; tags(rels, 'Relationship').forEach(r => relMap[r.getAttribute('Id')] = r.getAttribute('Target'));
+  const sheets = [];
+  for (const sh of tags(wb, 'sheet')){
+    const rid = sh.getAttribute('r:id') || [...sh.attributes].find(a => a.localName === 'id')?.value;
+    let target = relMap[rid] || ''; target = target.startsWith('/') ? target.slice(1) : 'xl/' + target.replace(/^\.\//, '');
+    const xml = await get(target); if (!xml) continue;
+    const rows = [];
+    tags(P(xml), 'row').forEach(rowEl => {
+      const r = []; let auto = 0;
+      tags(rowEl, 'c').forEach(c => {
+        const ref = c.getAttribute('r'); let col = auto;
+        if (ref){ col = 0; for (const ch of ref.replace(/\d+/g, '')) col = col * 26 + (ch.charCodeAt(0) - 64); col--; }
+        auto = col + 1;
+        const t = c.getAttribute('t'), v = tags(c, 'v')[0];
+        let val = '';
+        if (t === 's') val = shared[+(v?.textContent)] ?? '';
+        else if (t === 'inlineStr') val = tags(c, 't').map(x => x.textContent).join('');
+        else if (t === 'b') val = v?.textContent === '1' ? 'TRUE' : 'FALSE';
+        else val = v?.textContent ?? '';
+        while (r.length < col) r.push('');
+        r[col] = val;
+      });
+      const rn = +rowEl.getAttribute('r'); if (rn) while (rows.length < rn - 1) rows.push([]);
+      rows.push(r);
+    });
+    sheets.push({ name: sh.getAttribute('name'), rows });
+  }
+  return sheets;
+}
+
+/* ----- 적용 ----- */
+const mode = () => document.querySelector('input[name=mode]:checked').value;
+function applyImport(newItems, m){
+  const old = new Map(S.items.map(x => [keyOf(x), x]));
+  if (S.opts.keep) newItems.forEach(n => { const o = old.get(keyOf(n)); if (o) n.star = o.star; });
+  if (m === 'append'){
+    let add = 0, upd = 0;
+    newItems.forEach(n => { const o = old.get(keyOf(n)); if (o){ o.a = n.a; upd++; } else { S.items.push(n); add++; } });
+    save(); refreshAll(); return `추가 ${add}개 · 갱신 ${upd}개`;
+  }
+  if (m === 'subject'){
+    const subs = new Set(newItems.map(x => x.subj));
+    S.items = S.items.filter(x => !subs.has(x.subj)).concat(newItems);
+    save(); refreshAll(); return `${[...subs].join(', ')} → ${newItems.length}문항으로 교체`;
+  }
+  S.items = newItems; save(); refreshAll(); return `전체 ${newItems.length}문항으로 교체`;
+}
+function refreshAll(){ refreshInfo(); if ($('#vSubj').classList.contains('on')) renderSubj(); else renderHome(); }
+const confirmReplace = n => mode() !== 'replace' || !S.items.length || confirm(`기존 ${S.items.length}문항을 지우고 ${n}문항으로 바꿀까요?`);
+
+$('#fileIn').addEventListener('change', async e => {
+  const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+  const st = $('#fileStatus'); st.className = 'status'; st.textContent = '읽는 중…';
+  const base = file.name.replace(/\.[^.]+$/, '');
+  try {
+    let items = [], infos = [];
+    if (/\.xlsx$/i.test(file.name) || file.type.includes('spreadsheetml')){
+      const sheets = await readXlsx(await file.arrayBuffer());
+      sheets.forEach(sh => {
+        const fb = /^(sheet|시트)\s*\d*$/i.test(sh.name) ? base : sh.name;
+        const r = rowsToItems(sh.rows, fb);
+        if (r.items.length){ items.push(...r.items); infos.push(`${sh.name}: ${r.items.length}개`); }
+      });
+    } else if (/\.xls$/i.test(file.name)){
+      throw new Error('예전 .xls 형식은 지원하지 않아요. 엑셀에서 .xlsx로 다시 저장해 주세요');
+    } else {
+      const r = parseText(await file.text(), base); items = r.items; infos.push(r.info);
+    }
+    if (!items.length) throw new Error('문항을 찾지 못했어요. 첫 행 머리글(과목·영역·문제·정답)을 확인해 주세요');
+    if (!confirmReplace(items.length)){ st.textContent = '취소했어요.'; return; }
+    const subs = [...new Set(items.map(x => x.subj))];
+    const msg = applyImport(items, mode());
+    st.className = 'status ok';
+    st.innerHTML = `✔ ${esc(file.name)} · ${items.length}문항 (과목 ${subs.length}개)<br>${esc(msg)}<br><small>${esc(infos.join(' / '))}</small>`;
+    toast(`${items.length}문항 불러옴`);
+  } catch(err){ st.className = 'status err'; st.textContent = '불러오기 실패: ' + (err.message || err); }
+});
+
+/* 붙여넣기 (노션/웹 표 HTML → TSV) */
+const pasteBox = $('#pasteBox');
+pasteBox.addEventListener('paste', e => {
+  const html = e.clipboardData && e.clipboardData.getData('text/html');
+  if (!html || !/<table/i.test(html)) return;
+  try {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const trs = [...doc.querySelectorAll('tr')]; if (!trs.length) return;
+    const cell = el => { el.querySelectorAll('br').forEach(b => b.replaceWith('\n')); el.querySelectorAll('p,div,li').forEach(p => p.append('\n'));
+      const cb = el.querySelector('input[type=checkbox]'); if (cb) return cb.checked ? 'TRUE' : 'FALSE'; return el.textContent.replace(/\n{2,}/g,'\n').trim(); };
+    const q = s => /[\t\n"]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+    const tsv = trs.map(tr => [...tr.querySelectorAll('th,td')].map(c => q(cell(c))).join('\t')).join('\n');
+    e.preventDefault();
+    const a = pasteBox.selectionStart, b = pasteBox.selectionEnd;
+    pasteBox.value = pasteBox.value.slice(0, a) + tsv + pasteBox.value.slice(b); previewPaste();
+  } catch(_){}
+});
+let pvT; pasteBox.addEventListener('input', () => { clearTimeout(pvT); pvT = setTimeout(previewPaste, 250); });
+function previewPaste(){
+  const st = $('#pasteStatus'); if (!pasteBox.value.trim()){ st.textContent = ''; return; }
+  const r = parseText(pasteBox.value);
+  st.className = 'status ' + (r.items.length ? 'ok' : 'err');
+  st.textContent = r.items.length ? `인식된 문항 ${r.items.length}개 · 과목 ${new Set(r.items.map(x => x.subj)).size}개 · ${r.info}` : '문항을 인식하지 못했어요.';
+}
+$('#btnPaste').addEventListener('click', () => {
+  const r = parseText(pasteBox.value), st = $('#pasteStatus');
+  if (!r.items.length){ st.className = 'status err'; st.textContent = '가져올 문항이 없어요.'; return; }
+  if (!confirmReplace(r.items.length)) return;
+  const msg = applyImport(r.items, mode());
+  st.className = 'status ok'; st.textContent = '완료: ' + msg; pasteBox.value = ''; toast('가져오기 완료');
+});
+
+/* 구글 시트 */
+function normalizeSheetUrl(u){
+  u = u.trim(); if (!u) return '';
+  const gm = u.match(/[#&?]gid=(\d+)/), gid = gm ? gm[1] : '';
+  if (/\/spreadsheets\/d\/e\//.test(u)) return u.replace(/\/pub(html)?.*$/, '/pub') + '?output=csv' + (gid ? '&single=true&gid=' + gid : '');
+  const m = u.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? `https://docs.google.com/spreadsheets/d/${m[1]}/export?format=csv${gid ? '&gid=' + gid : ''}` : u;
+}
+async function syncSheet(silent){
+  const st = $('#syncStatus'), raw = $('#sheetUrl').value || S.url, url = normalizeSheetUrl(raw);
+  if (!url){ st.className = 'status err'; st.textContent = 'CSV 링크를 입력해 주세요.'; return; }
+  S.url = raw.trim(); save(); st.className = 'status'; st.textContent = '불러오는 중…';
+  const btn = $('#btnSync'); btn.disabled = true;
+  try {
+    const res = await fetch(url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now(), { cache:'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    if (/^\s*<(!doctype|html)/i.test(text)) throw new Error('CSV가 아닌 웹페이지가 왔어요 (웹에 게시·공개 설정 확인)');
+    const r = rowsToItems(parseDelimited(text, ','), '구글시트');
+    if (!r.items.length) throw new Error('문항을 찾지 못함');
+    const msg = applyImport(r.items, silent ? 'subject' : mode());
+    st.className = 'status ok'; st.textContent = `동기화 완료 · ${msg}`; if (!silent) toast('구글 시트 동기화 완료');
+  } catch(err){
+    st.className = 'status err';
+    st.innerHTML = `불러오기 실패: ${esc(err.message || err)}<br>· ‘웹에 게시 → CSV’ 링크인지 확인하세요.<br>· 파일로 열어 막히면 시트를 복사해 ② 붙여넣기를 이용하세요.`;
+    if (silent) toast('시트 자동 동기화 실패');
+  } finally { btn.disabled = false; }
+}
+$('#btnSync').addEventListener('click', () => syncSheet(false));
+
+/* ================= 설정 ================= */
+function refreshInfo(){
+  const m = subjects(), s = S.items.filter(x => x.star).length;
+  $('#dataInfo').textContent = `현재 과목 ${m.size}개 · ${S.items.length}문항 · ★ ${s}개` + (m.size ? ` (${[...m.keys()].slice(0,5).join(', ')}${m.size > 5 ? ' …' : ''})` : '');
+}
+function openSheet(){
+  const o = S.opts;
+  $('#sheetUrl').value = S.url || '';
+  $('#optShuffle').checked = o.shuffle; $('#optKeep').checked = o.keep; $('#optAuto').checked = o.auto;
+  $('#optAutoQ').checked = o.autoQ; $('#optAutoA').checked = o.autoA;
+  $('#optRate').value = o.rate; $('#rateLbl').textContent = (+o.rate).toFixed(1) + '배';
+  loadVoices(); refreshInfo(); $('#sheetback').classList.add('on');
+}
+document.addEventListener('click', e => { if (e.target.closest('[data-open-settings]')) openSheet(); });
+$('#btnClose').addEventListener('click', () => $('#sheetback').classList.remove('on'));
+$('#sheetback').addEventListener('click', e => { if (e.target.id === 'sheetback') $('#sheetback').classList.remove('on'); });
+const bindOpt = (sel, key, fn = el => el.checked) => $(sel).addEventListener('input', e => { S.opts[key] = fn(e.target); save(); });
+bindOpt('#optShuffle','shuffle'); bindOpt('#optKeep','keep'); bindOpt('#optAuto','auto'); bindOpt('#optAutoQ','autoQ'); bindOpt('#optAutoA','autoA');
+bindOpt('#optRate','rate', el => { $('#rateLbl').textContent = (+el.value).toFixed(1) + '배'; return +el.value; });
+bindOpt('#optVoice','voice', el => el.value);
+$('#optVoice').addEventListener('change', () => { S.opts.voice = $('#optVoice').value; save(); speak('안녕하세요. 나만의 플래시카드입니다.', null); });
+$('#btnStarAll').addEventListener('click', () => { S.items.forEach(x => x.star = true); save(); refreshAll(); });
+$('#btnStarNone').addEventListener('click', () => { S.items.forEach(x => x.star = false); save(); refreshAll(); });
+$('#btnSample').addEventListener('click', () => { if (!confirm('샘플 데이터로 초기화할까요? 현재 문항은 사라집니다.')) return; S.items = SAMPLE.map(r => mk(...r, true)); save(); refreshAll(); });
+$('#btnClear').addEventListener('click', () => { if (!confirm('모든 문항을 삭제할까요?')) return; S.items = []; save(); show('vHome'); refreshInfo(); });
+function download(name, text){
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + text], { type:'text/csv;charset=utf-8' }));
+  a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+const csvq = s => '"' + String(s).replace(/"/g,'""') + '"';
+$('#btnExport').addEventListener('click', () => download('my_flashcards.csv', '과목,영역,문제,정답,별표\n' + S.items.map(x => [x.subj,x.area,x.q,x.a].map(csvq).join(',') + ',' + (x.star ? 'TRUE' : 'FALSE')).join('\n')));
+$('#btnTemplate').addEventListener('click', () => download('flashcard_template.csv', '과목,영역,문제,정답,별표\n' + SAMPLE.slice(0,3).map(r => r.map(csvq).join(',') + ',O').join('\n')));
+
+/* ================= 시작 ================= */
+load(); renderHome();
+if (S.opts.auto && S.url) syncSheet(true);
+})();
+</script>
+</body>
+</html>
